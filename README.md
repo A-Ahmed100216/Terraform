@@ -57,11 +57,62 @@ resource "aws_subnet" "subnet_public" {
 }
 ```
 ## Creating a Security Group
+* A security group can be created as a separate resource.
+* Defined with ingress (inbound) and egress (outbound) rules.
+* Security groups are stateful so only one egress rule is required which allows all traffic back in.
+```HCL
+resource "aws_security_group" "app_sg" {
+  name        = "eng74-aminah-app-sg-public"
+  description = "Allows traffic to app"
+  vpc_id      = aws_vpc.VPC-Aminah.id
 
+  ingress {
+    description = "All http traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "eng74-aminah-app-sg"
+  }
+}
+```
+## Creating NACLs
+* NACLs are created in a similar way to security groups, with ingress and egress rules used to define inbound and outbound traffic. 
 ```hcl
+resource "aws_network_acl" "nacl" {
+  vpc_id = aws_vpc.VPC-Aminah.id
+  subnet_ids=[aws_subnet.subnet_public.id]
 
+  egress {
+    protocol   = "all"
+    rule_no    = 200
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 0
+    to_port    = 0
+  }
 
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 100
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 80
+    to_port    = 80
+  }
 
-
-
+  tags = {
+    Name = "eng74-aminah-public-nacl-terraform"
+  }
+}
 ```
