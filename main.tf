@@ -137,6 +137,7 @@ resource "aws_network_acl" "nacl" {
     to_port    = 0
   }
 
+  # Port 80 open for all
   ingress {
     protocol   = "tcp"
     rule_no    = 100
@@ -146,6 +147,7 @@ resource "aws_network_acl" "nacl" {
     to_port    = 80
   }
 
+  # Port 443 open for all
   ingress {
     protocol   = "tcp"
     rule_no    = 110
@@ -155,6 +157,7 @@ resource "aws_network_acl" "nacl" {
     to_port    = 443
   }
 
+  # Port 22 open for my ip
   ingress {
     protocol   = "tcp"
     rule_no    = 120
@@ -164,6 +167,7 @@ resource "aws_network_acl" "nacl" {
     to_port    = 22
   }
 
+  # Ephemeral ports open for all
   ingress {
     protocol   = "tcp"
     rule_no    = 130
@@ -193,15 +197,17 @@ resource "aws_network_acl" "nacl_priv" {
     to_port    = 0
   }
 
+  # Port 22 open for my ip
   ingress {
     protocol   = "tcp"
     rule_no    = 100
     action     = "allow"
-    cidr_block = aws_subnet.subnet_public.cidr_block
+    cidr_block = "${module.myip.address}/32"
     from_port  = 22
     to_port    = 22
   }
 
+  # Port 27017 open for public subnet
   ingress {
     protocol   = "tcp"
     rule_no    = 110
@@ -211,6 +217,7 @@ resource "aws_network_acl" "nacl_priv" {
     to_port    = 27017
   }
 
+  # Ephemeral ports open for all
   ingress {
     protocol   = "tcp"
     rule_no    = 120
@@ -295,7 +302,8 @@ resource "aws_instance" "nodejs_instance-db" {
         Name = "eng74-aminah-nodejs-db-2"
     }
     key_name = var.key_name
-    #security_groups=[aws_security_group.db-sg-terraform.id]
+    subnet_id=aws_subnet.subnet_public.id
+    security_groups=[aws_security_group.db-sg-terraform.id]
     connection {
       type = "ssh"
       user = "ubuntu"
